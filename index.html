@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https://assets.coingecko.com https://coin-images.coingecko.com data:; connect-src https://api.coingecko.com https://cryptopanic.com;" />
+  <meta name="description" content="Real-time cryptocurrency prediction dashboard with technical analysis for BTC, XRP, ADA, DOGE and more. Get trading signals, entry/exit points, and latest news." />
+  <title>CryptoVision — AI-Powered Crypto Predictions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header" id="header">
+      <div class="header__inner">
+        <div class="header__brand">
+          <div class="header__logo">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <defs>
+                <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                  <stop offset="0%" stop-color="#00f0ff"/>
+                  <stop offset="100%" stop-color="#7b2ff7"/>
+                </linearGradient>
+              </defs>
+              <circle cx="16" cy="16" r="14" stroke="url(#logoGrad)" stroke-width="2.5" fill="none"/>
+              <path d="M12 20V12l4 4 4-4v8" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+          </div>
+          <h1 class="header__title">CryptoVision</h1>
+          <span class="header__badge">LIVE</span>
+        </div>
+        <div class="header__meta">
+          <div class="header__refresh" id="refreshTimer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 4v6h-6M1 20v-6h6"/>
+              <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+            </svg>
+            <span id="countdownText">Refreshes in 60:00</span>
+          </div>
+          <div class="header__updated" id="lastUpdated">Last updated: --</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Disclaimer Banner -->
+    <div class="disclaimer" id="disclaimer">
+      <div class="disclaimer__inner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <p><strong>Disclaimer:</strong> Predictions are based on technical analysis of historical data and are <strong>NOT financial advice</strong>. Cryptocurrency markets are highly volatile. Always do your own research (DYOR) before making trading decisions.</p>
+        <button class="disclaimer__close" id="disclaimerClose" aria-label="Close disclaimer">✕</button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading" id="loadingScreen">
+      <div class="loading__spinner"></div>
+      <p class="loading__text">Analyzing market data...</p>
+      <p class="loading__sub">Fetching prices & computing indicators</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-banner" id="errorBanner" style="display:none;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="errorText"></span>
+      <button id="retryBtn" class="btn btn--small">Retry</button>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main" id="mainContent" style="display:none;">
+      <!-- Market Summary Bar -->
+      <section class="market-summary" id="marketSummary">
+        <div class="market-summary__item">
+          <span class="market-summary__label">Total Market Mood</span>
+          <span class="market-summary__value" id="marketMood">--</span>
+        </div>
+        <div class="market-summary__item">
+          <span class="market-summary__label">Profitable</span>
+          <span class="market-summary__value market-summary__value--green" id="profitableCount">0</span>
+        </div>
+        <div class="market-summary__item">
+          <span class="market-summary__label">Neutral</span>
+          <span class="market-summary__value market-summary__value--yellow" id="neutralCount">0</span>
+        </div>
+        <div class="market-summary__item">
+          <span class="market-summary__label">Risky</span>
+          <span class="market-summary__value market-summary__value--red" id="riskyCount">0</span>
+        </div>
+      </section>
+
+      <!-- Coin Grid -->
+      <section class="coin-grid" id="coinGrid"></section>
+    </main>
+
+    <!-- Detail Modal -->
+    <div class="modal-overlay" id="modalOverlay" style="display:none;">
+      <div class="modal" id="modalContent">
+        <button class="modal__close" id="modalClose" aria-label="Close details">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+        <div id="modalBody"></div>
+      </div>
+    </div>
+
+    <!-- News Panel -->
+    <div class="news-panel" id="newsPanel" style="display:none;">
+      <div class="news-panel__header">
+        <h2 id="newsPanelTitle">News</h2>
+        <button class="news-panel__close" id="newsPanelClose" aria-label="Close news">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="news-panel__body" id="newsPanelBody"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
